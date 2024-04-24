@@ -54,10 +54,9 @@ fn bfs_distance(graph: &HashMap<String, Vec<String>>, start_node: &str, target_n
             }
         }
     }
-    usize::max_value() // Return infinity if target_node is unreachable
+    usize::max_value() 
 }
 
-// Function to calculate average distance between all node pairs
 fn average_distance(graph: &HashMap<String, Vec<String>>, sample_size: usize) -> f64 {
     let nodes: Vec<&String> = graph.keys().collect();
     let mut total_distance = 0;
@@ -85,21 +84,21 @@ fn average_distance(graph: &HashMap<String, Vec<String>>, sample_size: usize) ->
 }
 
 // Function to find the maximum distance between all pairs of nodes
-fn max_distance(graph: &HashMap<String, Vec<String>>) -> usize {
-    let mut max_dist = 0;
+// fn max_distance(graph: &HashMap<String, Vec<String>>) -> usize {
+//     let mut max_dist = 0;
 
-    for (start_node, _) in graph.iter() {
-        for (target_node, _) in graph.iter() {
-            if start_node != target_node {
-                let distance = bfs_distance(&graph, start_node, target_node);
-                if distance > max_dist {
-                    max_dist = distance;
-                }
-            }
-        }
-    }
-    max_dist
-}
+//     for (start_node, _) in graph.iter() {
+//         for (target_node, _) in graph.iter() {
+//             if start_node != target_node {
+//                 let distance = bfs_distance(&graph, start_node, target_node);
+//                 if distance > max_dist {
+//                     max_dist = distance;
+//                 }
+//             }
+//         }
+//     }
+//     max_dist
+// }
 
 
 // Function to find the median distance between all pairs of nodes
