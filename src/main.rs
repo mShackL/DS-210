@@ -9,7 +9,7 @@ fn main() {
     let std_dev_dist = standard_deviation_distance(&graph);
 
     println!("Average distance between all node pairs: {:.2}", avg_dist);
-    println!("Maxium distance between all node pairs: {:.2}", max_dist);
+    println!("Maxium distance between all node pairs: {:2}", max_dist);
     println!("Median distance between all node pairs: {:.2}", median_dist);
     println!("Standard deviation of distance between all node pairs: {:.2}", std_dev_dist);
 }
@@ -84,21 +84,21 @@ fn average_distance(graph: &HashMap<String, Vec<String>>, sample_size: usize) ->
 }
 
 // Function to find the maximum distance between all pairs of nodes
-// fn max_distance(graph: &HashMap<String, Vec<String>>) -> usize {
-//     let mut max_dist = 0;
+fn max_distance(graph: &HashMap<String, Vec<String>>) -> usize {
+    let mut max_dist = 0;
 
-//     for (start_node, _) in graph.iter() {
-//         for (target_node, _) in graph.iter() {
-//             if start_node != target_node {
-//                 let distance = bfs_distance(&graph, start_node, target_node);
-//                 if distance > max_dist {
-//                     max_dist = distance;
-//                 }
-//             }
-//         }
-//     }
-//     max_dist
-// }
+    for (start_node, _) in graph.iter() {
+        for (target_node, _) in graph.iter() {
+            if start_node != target_node {
+                let distance = bfs_distance(&graph, start_node, target_node);
+                if distance > max_dist {
+                    max_dist = distance;
+                }
+            }
+        }
+    }
+    max_dist
+}
 
 
 // Function to find the median distance between all pairs of nodes
@@ -140,3 +140,8 @@ fn standard_deviation_distance(graph: &HashMap<String, Vec<String>>) -> f64 {
     variance.sqrt()
 }
 
+
+fn betweeness_centrality(graph: &HashMap<String, Vec<String>>) -> f64 {
+
+
+}
