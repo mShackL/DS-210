@@ -2,16 +2,18 @@
 fn main() {
     let file_path = "web-Stanford.txt"; // Holds path to file from which data will be read
     let graph = read_graph(file_path);
-    let sample_size = 1000;
+    let sample_size = 100;    // Setting sample size from specified text file
     let avg_dist = average_distance(&graph, sample_size);
     let max_dist = max_distance(&graph);
     let median_dist = median_distance(&graph);
     let std_dev_dist = standard_deviation_distance(&graph);
+    let c_centrality = closeness_centrality(&graph);
 
     println!("Average distance between all node pairs: {:.2}", avg_dist);
     println!("Maxium distance between all node pairs: {:2}", max_dist);
     println!("Median distance between all node pairs: {:.2}", median_dist);
     println!("Standard deviation of distance between all node pairs: {:.2}", std_dev_dist);
+    println!("The closeness centrality of node {}: {:.2}", node, centrality);
 }
 
 use std::collections::{HashMap, HashSet};
@@ -141,7 +143,32 @@ fn standard_deviation_distance(graph: &HashMap<String, Vec<String>>) -> f64 {
 }
 
 
-fn betweeness_centrality(graph: &HashMap<String, Vec<String>>) -> f64 {
+fn closeness_centrality(graph: &HashMap<String, Vec<String>>) -> f64 {
+    let mut closeness_centralities: HashMap<String, f64> = HashMap::new();
 
+    for (node, _) in graph.iter() {
+        let mut total_distance = 0;
+        let mut reachable_nodes_count = 0;
+
+        for (other_node, _) in graph.iter() {
+            if node != other_node {
+                let distance = bfs_distance(graph, node, other_node);
+                if distance != usize::max_value() {
+                    total_distance += distance;
+                    reachable_nodes_count += 1;
+                }
+            }
+        }
+
+        if reachable_nodes_count > 0 {
+            let closeness_centrality = (reachable_nodes_count as f64) / (total_distance as f64);
+            closeness_centralities.insert(node.clone(), closeness_centrality);
+        } else {
+            
+            closeness_centralities.insert(node.clone(), 0.0);
+        }
+    }
+
+    closeness_centralities
 
 }
