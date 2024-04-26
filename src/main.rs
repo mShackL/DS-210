@@ -13,7 +13,9 @@ fn main() {
     println!("Maxium distance between all node pairs: {:2}", max_dist);
     println!("Median distance between all node pairs: {:.2}", median_dist);
     println!("Standard deviation of distance between all node pairs: {:.2}", std_dev_dist);
-    println!("The closeness centrality of node {}: {:.2}", node, centrality);
+    for (node, centrality) in c_centrality.iter() {
+        println!("The closeness centrality of node {}: {:.2}", node, centrality);
+    }
 }
 
 use std::collections::{HashMap, HashSet};
@@ -143,32 +145,69 @@ fn standard_deviation_distance(graph: &HashMap<String, Vec<String>>) -> f64 {
 }
 
 
-fn closeness_centrality(graph: &HashMap<String, Vec<String>>) -> f64 {
+
+fn closeness_centrality(graph: &HashMap<String, Vec<String>>) -> HashMap<String, f64> {
     let mut closeness_centralities: HashMap<String, f64> = HashMap::new();
 
     for (node, _) in graph.iter() {
         let mut total_distance = 0;
-        let mut reachable_nodes_count = 0;
+        let mut close_nodes_count = 0;
 
         for (other_node, _) in graph.iter() {
             if node != other_node {
                 let distance = bfs_distance(graph, node, other_node);
                 if distance != usize::max_value() {
                     total_distance += distance;
-                    reachable_nodes_count += 1;
+                    close_nodes_count += 1;
                 }
             }
         }
 
-        if reachable_nodes_count > 0 {
-            let closeness_centrality = (reachable_nodes_count as f64) / (total_distance as f64);
+        if close_nodes_count > 0 {
+            let closeness_centrality = (close_nodes_count as f64) / (total_distance as f64);
             closeness_centralities.insert(node.clone(), closeness_centrality);
         } else {
-            
             closeness_centralities.insert(node.clone(), 0.0);
         }
     }
 
     closeness_centralities
-
 }
+
+
+
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_bfs_distance_simple() {
+        
+        let mut graph: HashMap<String, Vec<String>> = HashMap::new();
+        graph.insert("A".to_string(), vec!["B".to_string()]);
+        graph.insert("B".to_string(), vec!["A".to_string(), "C".to_string()]);
+        graph.insert("C".to_string(), vec!["B".to_string()]);
+
+        let distance = bfs_distance(&graph, "A", "C");
+
+        assert_eq!(distance, 2);
+    }
+
+    #[test]
+    fn test_bfs_distance_not_connected() {
+        
+        let mut graph: HashMap<String, Vec<String>> = HashMap::new();
+        graph.insert("A".to_string(), vec!["B".to_string()]);
+        graph.insert("B".to_string(), vec!["A".to_string()]);
+        graph.insert("C".to_string(), vec!["D".to_string()]);
+        graph.insert("D".to_string(), vec!["C".to_string()]);
+
+        let distance = bfs_distance(&graph, "A", "C");
+
+        assert_eq!(distance, usize::max_value());
+    }
+
+    
+}
+
