@@ -1,21 +1,22 @@
 
 fn main() {
-    let file_path = "web-Stanford.txt"; // Holds path to file from which data will be read
+    let file_path = "CA-GrQc.txt"; // Holds path to file from which data will be read
     let graph = read_graph(file_path);
-    let sample_size = 100;    // Setting sample size from specified text file
+    let sample_size = 1000;    // Setting sample size from specified text file
     let avg_dist = average_distance(&graph, sample_size);
     let max_dist = max_distance(&graph);
-    let median_dist = median_distance(&graph);
-    let std_dev_dist = standard_deviation_distance(&graph);
-    let c_centrality = closeness_centrality(&graph);
+    // let median_dist = median_distance(&graph);
+    // let std_dev_dist = standard_deviation_distance(&graph);
+    // let c_centrality = closeness_centrality(&graph);
 
+    println!("Random sample of 1000 node pairs:\n ");
     println!("Average distance between all node pairs: {:.2}", avg_dist);
     println!("Maxium distance between all node pairs: {:2}", max_dist);
-    println!("Median distance between all node pairs: {:.2}", median_dist);
-    println!("Standard deviation of distance between all node pairs: {:.2}", std_dev_dist);
-    for (node, centrality) in c_centrality.iter() {
-        println!("The closeness centrality of node {}: {:.2}", node, centrality);
-    }
+    // println!("Median distance between all node pairs: {:.2}", median_dist);
+    // println!("Standard deviation of distance between all node pairs: {:.2}", std_dev_dist);
+    // for (node, centrality) in c_centrality.iter() {
+    //     println!("The closeness centrality of node {}: {:.2}", node, centrality);
+    // }
 }
 
 use std::collections::{HashMap, HashSet};
@@ -87,127 +88,159 @@ fn average_distance(graph: &HashMap<String, Vec<String>>, sample_size: usize) ->
     }
 }
 
-// Function to find the maximum distance between all pairs of nodes
-fn max_distance(graph: &HashMap<String, Vec<String>>) -> usize {
-    let mut max_dist = 0;
 
-    for (start_node, _) in graph.iter() {
-        for (target_node, _) in graph.iter() {
-            if start_node != target_node {
-                let distance = bfs_distance(&graph, start_node, target_node);
-                if distance > max_dist {
-                    max_dist = distance;
+
+// Max distance function using the Floyd-Warshall algorithm
+fn max_distance(graph: &HashMap<String, Vec<String>>) -> usize {
+    let nodes = graph.keys().collect::<Vec<_>>();
+    let num_nodes = nodes.len();
+
+    
+    let mut distances = vec![vec![usize::max_value(); num_nodes]; num_nodes];
+    
+    for i in 0..num_nodes {
+        distances[i][i] = 0;
+    }
+
+    for (i, node1) in nodes.iter().enumerate() {
+        if let Some(neighbors) = graph.get(*node1) {
+            for node2 in neighbors {
+                if let Some(j) = nodes.iter().position(|&x| x == node2) {
+                    distances[i][j] = 1; // Assuming unweighted graph
                 }
             }
         }
     }
+
+    // Floyd-Warshall algorithm
+    for k in 0..num_nodes {
+        for i in 0..num_nodes {
+            for j in 0..num_nodes {
+                if distances[i][k] != usize::max_value() && distances[k][j] != usize::max_value() {
+                    distances[i][j] = distances[i][j].min(distances[i][k] + distances[k][j]);
+                }
+            }
+        }
+    }
+
+    // Find the maximum distance
+    let mut max_dist = 0;
+    for i in 0..num_nodes {
+        for j in 0..num_nodes {
+            if distances[i][j] != usize::max_value() && distances[i][j] > max_dist {
+                max_dist = distances[i][j];
+            }
+        }
+    }
+
     max_dist
 }
 
 
+
 // Function to find the median distance between all pairs of nodes
-fn median_distance(graph: &HashMap<String, Vec<String>>) -> f64 {
-    let mut distances: Vec<usize> = Vec::new();
+// fn median_distance(graph: &HashMap<String, Vec<String>>) -> f64 {
+//     let mut distances: Vec<usize> = Vec::new();
 
-    for (start_node, _) in graph.iter() {
-        for (target_node, _) in graph.iter() {
-            if start_node != target_node {
-                let distance = bfs_distance(&graph, start_node, target_node);
-                distances.push(distance);
-            }
-        }
-    }
-    distances.sort_unstable();
-    let len = distances.len();
-    if len % 2 == 0 {
-        (distances[len / 2 - 1] + distances[len / 2]) as f64 / 2.0
-    } else {
-        distances[len / 2] as f64
-    }
-}
-
-
-fn standard_deviation_distance(graph: &HashMap<String, Vec<String>>) -> f64 {
-    let mut distances: Vec<usize> = Vec::new();
-
-    for (start_node, _) in graph.iter() {
-        for (target_node, _) in graph.iter() {
-            if start_node != target_node {
-                let distance = bfs_distance(&graph, start_node, target_node);
-                distances.push(distance);
-            }
-        }
-    }
-
-    let mean_distance: f64 = distances.iter().sum::<usize>() as f64 / distances.len() as f64;
-    let variance: f64 = distances.iter().map(|&x| ((x as f64) - mean_distance).powi(2)).sum::<f64>() / distances.len() as f64;
-    variance.sqrt()
-}
+//     for (start_node, _) in graph.iter() {
+//         for (target_node, _) in graph.iter() {
+//             if start_node != target_node {
+//                 let distance = bfs_distance(&graph, start_node, target_node);
+//                 distances.push(distance);
+//             }
+//         }
+//     }
+//     distances.sort_unstable();
+//     let len = distances.len();
+//     if len % 2 == 0 {
+//         (distances[len / 2 - 1] + distances[len / 2]) as f64 / 2.0
+//     } else {
+//         distances[len / 2] as f64
+//     }
+// }
 
 
+// fn standard_deviation_distance(graph: &HashMap<String, Vec<String>>) -> f64 {
+//     let mut distances: Vec<usize> = Vec::new();
 
-fn closeness_centrality(graph: &HashMap<String, Vec<String>>) -> HashMap<String, f64> {
-    let mut closeness_centralities: HashMap<String, f64> = HashMap::new();
+//     for (start_node, _) in graph.iter() {
+//         for (target_node, _) in graph.iter() {
+//             if start_node != target_node {
+//                 let distance = bfs_distance(&graph, start_node, target_node);
+//                 distances.push(distance);
+//             }
+//         }
+//     }
 
-    for (node, _) in graph.iter() {
-        let mut total_distance = 0;
-        let mut close_nodes_count = 0;
-
-        for (other_node, _) in graph.iter() {
-            if node != other_node {
-                let distance = bfs_distance(graph, node, other_node);
-                if distance != usize::max_value() {
-                    total_distance += distance;
-                    close_nodes_count += 1;
-                }
-            }
-        }
-
-        if close_nodes_count > 0 {
-            let closeness_centrality = (close_nodes_count as f64) / (total_distance as f64);
-            closeness_centralities.insert(node.clone(), closeness_centrality);
-        } else {
-            closeness_centralities.insert(node.clone(), 0.0);
-        }
-    }
-
-    closeness_centralities
-}
+//     let mean_distance: f64 = distances.iter().sum::<usize>() as f64 / distances.len() as f64;
+//     let variance: f64 = distances.iter().map(|&x| ((x as f64) - mean_distance).powi(2)).sum::<f64>() / distances.len() as f64;
+//     variance.sqrt()
+// }
 
 
 
+// fn closeness_centrality(graph: &HashMap<String, Vec<String>>) -> HashMap<String, f64> {
+//     let mut closeness_centralities: HashMap<String, f64> = HashMap::new();
 
-#[cfg(test)]
-mod tests {
-    use super::*;
+//     for (node, _) in graph.iter() {
+//         let mut total_distance = 0;
+//         let mut close_nodes_count = 0;
 
-    #[test]
-    fn test_bfs_distance_simple() {
+//         for (other_node, _) in graph.iter() {
+//             if node != other_node {
+//                 let distance = bfs_distance(graph, node, other_node);
+//                 if distance != usize::max_value() {
+//                     total_distance += distance;
+//                     close_nodes_count += 1;
+//                 }
+//             }
+//         }
+
+//         if close_nodes_count > 0 {
+//             let closeness_centrality = (close_nodes_count as f64) / (total_distance as f64);
+//             closeness_centralities.insert(node.clone(), closeness_centrality);
+//         } else {
+//             closeness_centralities.insert(node.clone(), 0.0);
+//         }
+//     }
+
+//     closeness_centralities
+// }
+
+
+
+
+// #[cfg(test)]
+// mod tests {
+//     use super::*;
+
+//     #[test]
+//     fn test_bfs_distance_simple() {
         
-        let mut graph: HashMap<String, Vec<String>> = HashMap::new();
-        graph.insert("A".to_string(), vec!["B".to_string()]);
-        graph.insert("B".to_string(), vec!["A".to_string(), "C".to_string()]);
-        graph.insert("C".to_string(), vec!["B".to_string()]);
+//         let mut graph: HashMap<String, Vec<String>> = HashMap::new();
+//         graph.insert("A".to_string(), vec!["B".to_string()]);
+//         graph.insert("B".to_string(), vec!["A".to_string(), "C".to_string()]);
+//         graph.insert("C".to_string(), vec!["B".to_string()]);
 
-        let distance = bfs_distance(&graph, "A", "C");
+//         let distance = bfs_distance(&graph, "A", "C");
 
-        assert_eq!(distance, 2);
-    }
+//         assert_eq!(distance, 2);
+//     }
 
-    #[test]
-    fn test_bfs_distance_not_connected() {
+//     #[test]
+//     fn test_bfs_distance_not_connected() {
         
-        let mut graph: HashMap<String, Vec<String>> = HashMap::new();
-        graph.insert("A".to_string(), vec!["B".to_string()]);
-        graph.insert("B".to_string(), vec!["A".to_string()]);
-        graph.insert("C".to_string(), vec!["D".to_string()]);
-        graph.insert("D".to_string(), vec!["C".to_string()]);
+//         let mut graph: HashMap<String, Vec<String>> = HashMap::new();
+//         graph.insert("A".to_string(), vec!["B".to_string()]);
+//         graph.insert("B".to_string(), vec!["A".to_string()]);
+//         graph.insert("C".to_string(), vec!["D".to_string()]);
+//         graph.insert("D".to_string(), vec!["C".to_string()]);
 
-        let distance = bfs_distance(&graph, "A", "C");
+//         let distance = bfs_distance(&graph, "A", "C");
 
-        assert_eq!(distance, usize::max_value());
-    }
+//         assert_eq!(distance, usize::max_value());
+//     }
 
     
-}
+// }
 
