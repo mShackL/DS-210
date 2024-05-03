@@ -6,17 +6,20 @@ fn main() {
     let avg_dist = average_distance(&graph, sample_size);
     let max_dist = max_distance(&graph);
     let median_dist = median_distance(&graph);
+    let degree_dis = degree_distribution(&graph);
     // let std_dev_dist = standard_deviation_distance(&graph);
-    let b_centrality = betweenness_centrality(&graph);
+    // let b_centrality = betweenness_centrality(&graph);
 
-    println!("Random sample of 1000 node pairs:\n ");
+    println!("Random sample of 1000 node pairs-\n ");
     println!("Average distance between all node pairs: {:.2}", avg_dist);
     println!("Maxium distance between all node pairs: {:2}", max_dist);
     println!("Median distance between all node pairs: {:.2}", median_dist);
     // println!("Standard deviation of distance between all node pairs: {:.2}", std_dev_dist);
-    for (node, centrality) in b_centrality.iter() {
-        println!("The betweenness centrality of node {}: {:.2}", node, centrality);
+    println!("\nDegree Distribution- ");
+    for (degree, count) in &degree_dis {
+        println!("Degree {}: Count {}", degree, count);
     }
+    
 }
 
 use std::collections::{HashMap, HashSet};
@@ -186,6 +189,22 @@ fn median_distance(graph: &HashMap<String, Vec<String>>) -> f64 {
 }
 
 
+fn degree_distribution(graph: &HashMap<String, Vec<String>>) -> HashMap<usize, usize> {
+    let mut degree_dist: HashMap<usize, usize> = HashMap::new();
+
+    // Iterate over each node in the graph
+    for (_, neighbors) in graph {
+        // Get the degree of the current node
+        let degree = neighbors.len();
+        // Increment the count of nodes with this degree in the distribution
+        let count = degree_dist.entry(degree).or_insert(0);
+        *count += 1;
+    }
+
+    degree_dist
+}
+
+
 // fn standard_deviation_distance(graph: &HashMap<String, Vec<String>>) -> f64 {
 //     let mut distances: Vec<usize> = Vec::new();
 
@@ -202,94 +221,6 @@ fn median_distance(graph: &HashMap<String, Vec<String>>) -> f64 {
 //     let variance: f64 = distances.iter().map(|&x| ((x as f64) - mean_distance).powi(2)).sum::<f64>() / distances.len() as f64;
 //     variance.sqrt()
 // }
-
-
-
-
-#[derive(Clone, Debug)]
-struct Path {
-    nodes: Vec<String>,
-}
-
-impl Path {
-    fn new() -> Self {
-        Path { nodes: Vec::new() }
-    }
-}
-
-// Define a struct to hold the result of the betweenness centrality calculation
-struct BetweennessCentrality {
-    counts: HashMap<String, usize>,
-}
-
-impl BetweennessCentrality {
-    fn new() -> Self {
-        BetweennessCentrality { counts: HashMap::new() }
-    }
-
-    fn add_node(&mut self, node: &str) {
-        let count = self.counts.entry(node.to_string()).or_insert(0);
-        *count += 1;
-    }
-
-    fn calculate_percentage(&mut self, num_paths: usize) {
-        for count in self.counts.values_mut() {
-            *count = (*count * 100) / num_paths;
-        }
-    }
-}
-
-// Function to calculate betweenness centrality
-fn betweenness_centrality(graph: &HashMap<String, Vec<String>>) -> HashMap<String, f64> {
-    let mut betweenness: HashMap<String, f64> = HashMap::new();
-    let mut all_paths: Vec<Path> = Vec::new();
-
-    // Calculate all shortest paths between node pairs
-    for start_node in graph.keys() {
-        let mut visited: HashSet<String> = HashSet::new();
-        let mut stack: Vec<(String, Path)> = Vec::new();
-
-        stack.push((start_node.clone(), Path::new()));
-
-        while let Some((current_node, mut path)) = stack.pop() {
-            if visited.contains(&current_node) {
-                continue;
-            }
-
-            visited.insert(current_node.clone());
-            path.nodes.push(current_node.clone());
-
-            if path.nodes.len() > 1 {
-                all_paths.push(path.clone());
-            }
-
-            if let Some(neighbors) = graph.get(&current_node) {
-                for neighbor in neighbors {
-                    stack.push((neighbor.clone(), path.clone()));
-                }
-            }
-        }
-    }
-
-    // Count the appearance of each node in the paths
-    let mut centrality = BetweennessCentrality::new();
-    let num_paths = all_paths.len();
-    for path in all_paths {
-        for node in path.nodes {
-            centrality.add_node(&node);
-        }
-    }
-
-    // Calculate the percentage for each node
-    centrality.calculate_percentage(num_paths);
-
-    // Store the results in the betweenness centrality HashMap
-    for (node, count) in centrality.counts {
-        betweenness.insert(node, count as f64);
-    }
-
-    betweenness
-}
 
 
 
