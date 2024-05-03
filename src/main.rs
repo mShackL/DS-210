@@ -1,20 +1,36 @@
 
+use std::time::SystemTime;
+
 fn main() {
     let file_path = "CA-GrQc.txt"; // Holds path to file from which data will be read
     let graph = read_graph(file_path);
-    let sample_size = 1000;    // Setting sample size from specified text file
-    let avg_dist = average_distance(&graph, sample_size);
-    let max_dist = max_distance(&graph);
-    let median_dist = median_distance(&graph);
-    let degree_dis = degree_distribution(&graph);
-    // let std_dev_dist = standard_deviation_distance(&graph);
-    // let b_centrality = betweenness_centrality(&graph);
+    let sample_size = 2000;    // Setting sample size from specified text file
+    println!("Computation Times- ");
 
-    println!("Random sample of 1000 node pairs-\n ");
+    let before_avg_dist = SystemTime::now();
+    let avg_dist = average_distance(&graph, sample_size);
+    let after_avg_dist = SystemTime::now();
+    print_duration("Average distance", before_avg_dist, after_avg_dist);
+
+    let before_max_dist = SystemTime::now();
+    let max_dist = max_distance(&graph);
+    let after_max_dist = SystemTime::now();
+    print_duration("Maximum distance", before_max_dist, after_max_dist);
+
+    let before_median_dist = SystemTime::now();
+    let median_dist = median_distance(&graph);
+    let after_median_dist = SystemTime::now();
+    print_duration("Median distance", before_median_dist, after_median_dist);
+
+    let before_degree_dist = SystemTime::now();
+    let degree_dis = degree_distribution(&graph);
+    let after_degree_dist = SystemTime::now();
+    print_duration("Degree distribution", before_degree_dist, after_degree_dist);
+
+    println!("\nRandom sample of 1000 node pairs- ");
     println!("Average distance between all node pairs: {:.2}", avg_dist);
     println!("Maxium distance between all node pairs: {:2}", max_dist);
     println!("Median distance between all node pairs: {:.2}", median_dist);
-    // println!("Standard deviation of distance between all node pairs: {:.2}", std_dev_dist);
     println!("\nDegree Distribution- ");
     for (degree, count) in &degree_dis {
         println!("Degree {}: Count {}", degree, count);
@@ -189,6 +205,7 @@ fn median_distance(graph: &HashMap<String, Vec<String>>) -> f64 {
 }
 
 
+
 fn degree_distribution(graph: &HashMap<String, Vec<String>>) -> HashMap<usize, usize> {
     let mut degree_dist: HashMap<usize, usize> = HashMap::new();
 
@@ -205,24 +222,11 @@ fn degree_distribution(graph: &HashMap<String, Vec<String>>) -> HashMap<usize, u
 }
 
 
-// fn standard_deviation_distance(graph: &HashMap<String, Vec<String>>) -> f64 {
-//     let mut distances: Vec<usize> = Vec::new();
-
-//     for (start_node, _) in graph.iter() {
-//         for (target_node, _) in graph.iter() {
-//             if start_node != target_node {
-//                 let distance = bfs_distance(&graph, start_node, target_node);
-//                 distances.push(distance);
-//             }
-//         }
-//     }
-
-//     let mean_distance: f64 = distances.iter().sum::<usize>() as f64 / distances.len() as f64;
-//     let variance: f64 = distances.iter().map(|&x| ((x as f64) - mean_distance).powi(2)).sum::<f64>() / distances.len() as f64;
-//     variance.sqrt()
-// }
-
-
+fn print_duration(name: &str, before: SystemTime, after: SystemTime) {
+    let difference = after.duration_since(before)
+        .expect("Clock may have gone backwards");
+    println!("{} took {:?}", name, difference);
+}
 
 
 // #[cfg(test)]
