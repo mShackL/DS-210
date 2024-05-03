@@ -29,7 +29,7 @@ fn main() {
 
     println!("\nRandom sample of 1000 node pairs- ");
     println!("Average distance between all node pairs: {:.2}", avg_dist);
-    println!("Maxium distance between all node pairs: {:2}", max_dist);
+    println!("Maximum distance between all node pairs: {:2}", max_dist);
     println!("Median distance between all node pairs: {:.2}", median_dist);
     println!("\nDegree Distribution- ");
     for (degree, count) in &degree_dis {
@@ -280,21 +280,34 @@ mod tests {
 
         assert_eq!(distance, usize::max_value());
     }
-
     
-    mod tests {
-        use super::*;
+    #[test]
+    fn test_average_distance() {
+        let graph = generate_random_graph(1000);
     
-        #[test]
-        fn test_average_distance() {
-            let graph = generate_random_graph(1000);
+        let sample_size = 4000;
+        let avg_dist = average_distance(&graph, sample_size);
     
-            let sample_size = 50000;
-            let avg_dist = average_distance(&graph, sample_size);
-    
-            assert!(avg_dist >= 100.0 && avg_dist <= 1000.0); 
-        }
-    
+        assert!(avg_dist >= 100.0 && avg_dist <= 1000.0); 
     }
+
+    #[test]
+    fn test_max_distance() {
+        let graph = generate_random_graph(2000);
+
+        let max_dist = max_distance(&graph);
+
+        assert!(max_dist >= 10 && max_dist <= 30); 
+    }
+
+    #[test]
+    fn test_median_distance() {
+        let graph = generate_random_graph(2000);
+
+        let median_dist = median_distance(&graph);
+
+        assert!(median_dist >= 1.0 && median_dist <= 20.0); 
+    }
+    
 }
 
