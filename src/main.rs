@@ -4,7 +4,7 @@ use std::time::SystemTime;
 fn main() {
     let file_path = "CA-GrQc.txt"; // Holds path to file from which data will be read
     let graph = read_graph(file_path);
-    let sample_size = 2000;    // Setting sample size from specified text file
+    let sample_size = 1000;    // Setting sample size from specified text file
     println!("Computation Times- ");
 
     let before_avg_dist = SystemTime::now();
@@ -229,37 +229,72 @@ fn print_duration(name: &str, before: SystemTime, after: SystemTime) {
 }
 
 
-// #[cfg(test)]
-// mod tests {
-//     use super::*;
+use rand::Rng;
 
-//     #[test]
-//     fn test_bfs_distance_simple() {
+// For test cases
+fn generate_random_graph(num_nodes: usize) -> HashMap<String, Vec<String>> {
+    let mut graph: HashMap<String, Vec<String>> = HashMap::new();
+    let mut rng = rand::thread_rng();
+
+    for i in 0..num_nodes {
+        let node = format!("Node{}", i);
+        let num_neighbors = rng.gen_range(1..=5); 
+        let mut neighbors = Vec::new();
+        for _ in 0..num_neighbors {
+            let neighbor = format!("Node{}", rng.gen_range(0..num_nodes));
+            neighbors.push(neighbor);
+        }
+        graph.insert(node, neighbors);
+    }
+
+    graph
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_bfs_distance_simple() {
         
-//         let mut graph: HashMap<String, Vec<String>> = HashMap::new();
-//         graph.insert("A".to_string(), vec!["B".to_string()]);
-//         graph.insert("B".to_string(), vec!["A".to_string(), "C".to_string()]);
-//         graph.insert("C".to_string(), vec!["B".to_string()]);
+        let mut graph: HashMap<String, Vec<String>> = HashMap::new();
+        graph.insert("A".to_string(), vec!["B".to_string()]);
+        graph.insert("B".to_string(), vec!["A".to_string(), "C".to_string()]);
+        graph.insert("C".to_string(), vec!["B".to_string()]);
 
-//         let distance = bfs_distance(&graph, "A", "C");
+        let distance = bfs_distance(&graph, "A", "C");
 
-//         assert_eq!(distance, 2);
-//     }
+        assert_eq!(distance, 2);
+    }
 
-//     #[test]
-//     fn test_bfs_distance_not_connected() {
+    #[test]
+    fn test_bfs_distance_not_connected() {
         
-//         let mut graph: HashMap<String, Vec<String>> = HashMap::new();
-//         graph.insert("A".to_string(), vec!["B".to_string()]);
-//         graph.insert("B".to_string(), vec!["A".to_string()]);
-//         graph.insert("C".to_string(), vec!["D".to_string()]);
-//         graph.insert("D".to_string(), vec!["C".to_string()]);
+        let mut graph: HashMap<String, Vec<String>> = HashMap::new();
+        graph.insert("A".to_string(), vec!["B".to_string()]);
+        graph.insert("B".to_string(), vec!["A".to_string()]);
+        graph.insert("C".to_string(), vec!["D".to_string()]);
+        graph.insert("D".to_string(), vec!["C".to_string()]);
 
-//         let distance = bfs_distance(&graph, "A", "C");
+        let distance = bfs_distance(&graph, "A", "C");
 
-//         assert_eq!(distance, usize::max_value());
-//     }
+        assert_eq!(distance, usize::max_value());
+    }
 
     
-// }
+    mod tests {
+        use super::*;
+    
+        #[test]
+        fn test_average_distance() {
+            let graph = generate_random_graph(1000);
+    
+            let sample_size = 50000;
+            let avg_dist = average_distance(&graph, sample_size);
+    
+            assert!(avg_dist >= 100.0 && avg_dist <= 1000.0); 
+        }
+    
+    }
+}
 
