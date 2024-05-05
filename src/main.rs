@@ -1,33 +1,45 @@
 
+// Importation of necessary libraries
 use std::time::SystemTime;
+use std::collections::{HashMap, HashSet};
+use std::fs::File;
+use std::io::{BufRead, BufReader};
+use rand::seq::SliceRandom;
+use rand::Rng;
 
 fn main() {
-    let file_path = "CA-GrQc.txt"; // Holds path to file from which data will be read
+    // Defining the file path from which data will be read
+    let file_path = "CA-GrQc.txt";
+    // Read the graph from the specified file
     let graph = read_graph(file_path);
-    let sample_size = 1000;    // Setting sample size from specified text file
+
     println!("Computation Times- ");
 
+    // Measure and print the computation time for average distance calculation
     let before_avg_dist = SystemTime::now();
-    let avg_dist = average_distance(&graph, sample_size);
+    let avg_dist = average_distance(&graph);
     let after_avg_dist = SystemTime::now();
     print_duration("Average distance", before_avg_dist, after_avg_dist);
 
+    // Measure and print the computation time for maximum distance calculation
     let before_max_dist = SystemTime::now();
     let max_dist = max_distance(&graph);
     let after_max_dist = SystemTime::now();
     print_duration("Maximum distance", before_max_dist, after_max_dist);
 
+    // Measure and print the computation time for median distance calculation
     let before_median_dist = SystemTime::now();
     let median_dist = median_distance(&graph);
     let after_median_dist = SystemTime::now();
     print_duration("Median distance", before_median_dist, after_median_dist);
 
+    // Measure and print the computation time for degree distribution calculation
     let before_degree_dist = SystemTime::now();
     let degree_dis = degree_distribution(&graph);
     let after_degree_dist = SystemTime::now();
     print_duration("Degree distribution", before_degree_dist, after_degree_dist);
 
-    println!("\nRandom sample of 1000 node pairs- ");
+    // Printing the calculated values
     println!("Average distance between all node pairs: {:.2}", avg_dist);
     println!("Maximum distance between all node pairs: {:2}", max_dist);
     println!("Median distance between all node pairs: {:.2}", median_dist);
@@ -35,13 +47,8 @@ fn main() {
     for (degree, count) in &degree_dis {
         println!("Degree {}: Count {}", degree, count);
     }
-    
 }
 
-use std::collections::{HashMap, HashSet};
-use std::fs::File;
-use std::io::{BufRead, BufReader};
-use rand::seq::SliceRandom;
 
 // Function to read the graph from a text file
 fn read_graph(file_path: &str) -> HashMap<String, Vec<String>> {
@@ -81,22 +88,21 @@ fn bfs_distance(graph: &HashMap<String, Vec<String>>, start_node: &str, target_n
     usize::max_value() 
 }
 
-fn average_distance(graph: &HashMap<String, Vec<String>>, sample_size: usize) -> f64 {
+// Function to calculate the average distance between all node pairs
+fn average_distance(graph: &HashMap<String, Vec<String>>) -> f64 {
     let nodes: Vec<&String> = graph.keys().collect();
     let mut total_distance = 0;
     let mut pairs_calculated = 0;
 
     let mut rng = rand::thread_rng();
     
-    for _ in 0..sample_size {
-        let start_node = nodes.choose(&mut rng).unwrap();
-        let target_node = nodes.choose(&mut rng).unwrap();
-        if start_node != target_node {
-            let distance = bfs_distance(&graph, start_node, target_node);
-            if distance != usize::max_value() {
-                total_distance += distance;
-                pairs_calculated += 1;
-            }
+    let start_node = nodes.choose(&mut rng).unwrap();
+    let target_node = nodes.choose(&mut rng).unwrap();
+    if start_node != target_node {
+        let distance = bfs_distance(&graph, start_node, target_node);
+        if distance != usize::max_value() {
+            total_distance += distance;
+            pairs_calculated += 1;
         }
     }
     
@@ -108,52 +114,46 @@ fn average_distance(graph: &HashMap<String, Vec<String>>, sample_size: usize) ->
 }
 
 
-
-// Max distance function using the Floyd-Warshall algorithm
+// Function to calculate the maximum distance between all node pairs using Floyd-Warshall algorithm
 fn max_distance(graph: &HashMap<String, Vec<String>>) -> usize {
-    let nodes = graph.keys().collect::<Vec<_>>();
+    let nodes: Vec<&String> = graph.keys().collect();
     let num_nodes = nodes.len();
+    let mut dist = vec![vec![usize::max_value(); num_nodes]; num_nodes];
 
-    
-    let mut distances = vec![vec![usize::max_value(); num_nodes]; num_nodes];
-    
     for i in 0..num_nodes {
-        distances[i][i] = 0;
-    }
-
-    for (i, node1) in nodes.iter().enumerate() {
-        if let Some(neighbors) = graph.get(*node1) {
-            for node2 in neighbors {
-                if let Some(j) = nodes.iter().position(|&x| x == node2) {
-                    distances[i][j] = 1; // Assuming unweighted graph
+        dist[i][i] = 0;
+        if let Some(neighbors) = graph.get(nodes[i]) {
+            for neighbor in neighbors {
+                if let Some(j) = nodes.iter().position(|&node| node == neighbor) {
+                    dist[i][j] = 1;
                 }
             }
         }
     }
 
-    // Floyd-Warshall algorithm
     for k in 0..num_nodes {
         for i in 0..num_nodes {
             for j in 0..num_nodes {
-                if distances[i][k] != usize::max_value() && distances[k][j] != usize::max_value() {
-                    distances[i][j] = distances[i][j].min(distances[i][k] + distances[k][j]);
+                if dist[i][k] != usize::max_value() && dist[k][j] != usize::max_value() {
+                    dist[i][j] = dist[i][j].min(dist[i][k] + dist[k][j]);
                 }
             }
         }
     }
 
-    // Find the maximum distance
+    // Finding the maximum distance
     let mut max_dist = 0;
     for i in 0..num_nodes {
         for j in 0..num_nodes {
-            if distances[i][j] != usize::max_value() && distances[i][j] > max_dist {
-                max_dist = distances[i][j];
+            if dist[i][j] != usize::max_value() {
+                max_dist = max_dist.max(dist[i][j]);
             }
         }
     }
 
     max_dist
 }
+
 
 
 
@@ -205,15 +205,15 @@ fn median_distance(graph: &HashMap<String, Vec<String>>) -> f64 {
 }
 
 
-
+// Function to calculate the degree distribution of the graph
 fn degree_distribution(graph: &HashMap<String, Vec<String>>) -> HashMap<usize, usize> {
     let mut degree_dist: HashMap<usize, usize> = HashMap::new();
 
-    // Iterate over each node in the graph
+    // Iterating over each node in the graph
     for (_, neighbors) in graph {
-        // Get the degree of the current node
+        // Getting the degree of the current node
         let degree = neighbors.len();
-        // Increment the count of nodes with this degree in the distribution
+        // Incrementing the count of nodes with this degree in the distribution
         let count = degree_dist.entry(degree).or_insert(0);
         *count += 1;
     }
@@ -221,7 +221,7 @@ fn degree_distribution(graph: &HashMap<String, Vec<String>>) -> HashMap<usize, u
     degree_dist
 }
 
-
+// Function to print the duration of computations
 fn print_duration(name: &str, before: SystemTime, after: SystemTime) {
     let difference = after.duration_since(before)
         .expect("Clock may have gone backwards");
@@ -229,9 +229,8 @@ fn print_duration(name: &str, before: SystemTime, after: SystemTime) {
 }
 
 
-use rand::Rng;
 
-// For test cases
+// Function to generate a random graph for testing cases
 fn generate_random_graph(num_nodes: usize) -> HashMap<String, Vec<String>> {
     let mut graph: HashMap<String, Vec<String>> = HashMap::new();
     let mut rng = rand::thread_rng();
@@ -250,6 +249,7 @@ fn generate_random_graph(num_nodes: usize) -> HashMap<String, Vec<String>> {
     graph
 }
 
+// Unit tests for the functions
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -286,7 +286,7 @@ mod tests {
         let graph = generate_random_graph(1000);
     
         let sample_size = 4000;
-        let avg_dist = average_distance(&graph, sample_size);
+        let avg_dist = average_distance(&graph);
     
         assert!(avg_dist >= 100.0 && avg_dist <= 1000.0); 
     }
